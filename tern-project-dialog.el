@@ -1,4 +1,4 @@
-;;; tern-project-dialog.el --- GUI frontend for ternjs project config. -*- lexical-binding: t -*-
+;;; tern-project-dialog.el --- GUI frontend for TernJS project config. -*- lexical-binding: t -*-
 
 ;; Author: SAKURAI Masashi <m.sakurai at kiwanami.net>
 ;; Version: 0.0.2
@@ -17,10 +17,16 @@
 (require 'widget-mvc) ; https://github.com/kiwanami/emacs-widget-mvc
 
 
-(defvar tern-home
+(defgroup 'tern-project-dialog nil
+  "GUI frontend for TernJS project config."
+  :group 'js)
+
+(defcustom tern-home
   (let* ((tern-path (if (string= "node" (car tern-command)) (cadr tern-command) (car tern-command))))
     (expand-file-name ".." (file-name-directory (file-truename tern-path))))
-  "installed tern-home.")
+  "Tern NPM package location."
+  :group 'tern-project-dialog
+  :type 'directory)
 
 (eval-when-compile
   (defmacro tern-prj-collect-gen (target)
