@@ -17,7 +17,7 @@
 (require 'widget-mvc) ; https://github.com/kiwanami/emacs-widget-mvc
 
 
-(defgroup 'tern-project-dialog nil
+(defgroup tern-project-dialog nil
   "GUI frontend for TernJS project config."
   :group 'js)
 
