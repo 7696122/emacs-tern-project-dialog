@@ -1,4 +1,4 @@
-;;; tern-project-dialog.el ---
+;;; tern-project-dialog.el --- GUI frontend for TernJS project config. -*- lexical-binding: t -*-
 
 ;; Author: SAKURAI Masashi <m.sakurai at kiwanami.net>
 ;; Version: 0.0.2
@@ -22,13 +22,24 @@
   "installed tern-home."
   :group 'tern-project-dialog)
 
+(defgroup tern-project-dialog nil
+  "GUI frontend for TernJS project config."
+  :group 'js)
+
+(defcustom tern-home
+  (let* ((tern-path (if (string= "node" (car tern-command)) (cadr tern-command) (car tern-command))))
+    (expand-file-name ".." (file-name-directory (file-truename tern-path))))
+  "Tern NPM package location."
+  :group 'tern-project-dialog
+  :type 'directory)
+
 (eval-when-compile
   (defmacro tern-prj-collect-gen (target)
     `(cl-loop with plugins-dir = (expand-file-name ,target tern-home)
-           for fn in (directory-files plugins-dir t "^[^\\.]")
-           collect (list (cl-gensym ,target)
-                         (file-name-sans-extension (file-name-nondirectory fn))
-                         fn))))
+              for fn in (directory-files plugins-dir t "^[^\\.]")
+              collect (list (cl-gensym ,target)
+                            (file-name-sans-extension (file-name-nondirectory fn))
+                            fn))))
 
 (defun tern-prj-collect-libs ()
   (tern-prj-collect-gen "defs"))
@@ -41,8 +52,8 @@
   (unless (stringp name)
     (setq name (format "%s" name)))
   (cl-loop for item in item-list
-        for pname = (cadr item)
-        if (equal name pname) return item))
+           for pname = (cadr item)
+           if (equal name pname) return item))
 
 (defun tern-prj-collect-jsfiles (dir &optional base-dir)
   (unless base-dir
@@ -80,42 +91,42 @@
          (plugins (tern-prj-collect-plugins))
          (jsfiles (tern-prj-collect-jsfiles pdir))
          (src `(
-               ,(propertize "JavaScript Project Setting" 'face 'info-title-1) BR
-               "Project Directory : " ,pdir BR BR
-               ,(propertize "Project Environments" 'face 'info-title-2) BR
-               ,@(cl-loop for (sym name path) in libs
-                       append (list `(input :name ,sym :type checkbox)
-                                     "  " name 'BR))
-               BR ,(propertize "Tern Plugins" 'face 'info-title-2) BR
-               ,@(cl-loop for (sym name path) in plugins
-                       append (list `(input :name ,sym :type checkbox)
-                                    "  " name 'BR))
-               BR ,(propertize "Load Eagerly" 'face 'info-title-2) BR
-               ,@(cl-loop for (sym name path) in jsfiles
-                       append (list `(input :name ,sym :type checkbox)
-                                    "  " name 'BR))
-               BR BR
-               "  " (button :title "OK" :action on-submit :validation t)
-               "  " (button :title "Cancel" :action on-cancel)))
-        (model
-         (let ((data-plugins (cdr (assoc 'plugins project-data)))
-               (data-libs (cdr (assoc 'libs project-data)))
-               (data-jsfiles (cdr (assoc 'loadEagerly project-data))))
-           (append
-            (cl-loop for (sym pname content) in plugins
-                  for (name . opts) = (assoc (intern pname) data-plugins)
-                  collect (cons sym (and name t)))
-            (cl-loop for (sym pname content) in libs
-                  collect (cons sym (and (member pname data-libs) t)))
-            (cl-loop for (path name) in jsfiles
-                  collect (cons path (and (member path data-jsfiles) t))))))
-        (validations nil)
-        (action-mapping
-         '((on-submit . tern-prj-submit-action)
-           (on-cancel . tern-prj-dialog-kill-buffer)))
-        (attributes (list
-                     (cons 'project-dir pdir) (cons 'libs libs)
-                     (cons 'jsfiles jsfiles) (cons 'plugins plugins))))
+                ,(propertize "JavaScript Project Setting" 'face 'info-title-1) BR
+                "Project Directory : " ,pdir BR BR
+                ,(propertize "Project Environments" 'face 'info-title-2) BR
+                ,@(cl-loop for (sym name path) in libs
+                           append (list `(input :name ,sym :type checkbox)
+                                        "  " name 'BR))
+                BR ,(propertize "Tern Plugins" 'face 'info-title-2) BR
+                ,@(cl-loop for (sym name path) in plugins
+                           append (list `(input :name ,sym :type checkbox)
+                                        "  " name 'BR))
+                BR ,(propertize "Load Eagerly" 'face 'info-title-2) BR
+                ,@(cl-loop for (sym name path) in jsfiles
+                           append (list `(input :name ,sym :type checkbox)
+                                        "  " name 'BR))
+                BR BR
+                "  " (button :title "OK" :action on-submit :validation t)
+                "  " (button :title "Cancel" :action on-cancel)))
+         (model
+          (let ((data-plugins (cdr (assoc 'plugins project-data)))
+                (data-libs (cdr (assoc 'libs project-data)))
+                (data-jsfiles (cdr (assoc 'loadEagerly project-data))))
+            (append
+             (cl-loop for (sym pname content) in plugins
+                      for (name . opts) = (assoc (intern pname) data-plugins)
+                      collect (cons sym (and name t)))
+             (cl-loop for (sym pname content) in libs
+                      collect (cons sym (and (member pname data-libs) t)))
+             (cl-loop for (path name) in jsfiles
+                      collect (cons path (and (member path data-jsfiles) t))))))
+         (validations nil)
+         (action-mapping
+          '((on-submit . tern-prj-submit-action)
+            (on-cancel . tern-prj-dialog-kill-buffer)))
+         (attributes (list
+                      (cons 'project-dir pdir) (cons 'libs libs)
+                      (cons 'jsfiles jsfiles) (cons 'plugins plugins))))
     (setq tern-prj-dialog-before-win-num (length (window-list)))
     (pop-to-buffer
      (wmvc:build-buffer
@@ -137,21 +148,21 @@
                 (list
                  (cons 'plugins
                        (cl-loop with ps = (make-hash-table)
-                             for (sym pname content) in plugins
-                             for (msym . val) = (assoc sym model)
-                             if val do
-                             (puthash pname (make-hash-table) ps)
-                             finally return ps))
+                                for (sym pname content) in plugins
+                                for (msym . val) = (assoc sym model)
+                                if val do
+                                (puthash pname (make-hash-table) ps)
+                                finally return ps))
                  (cons 'libs
                        (vconcat
                         (cl-loop for (sym pname content) in libs
-                              for (msym . val) = (assoc sym model)
-                              if val collect pname)))
+                                 for (msym . val) = (assoc sym model)
+                                 if val collect pname)))
                  (cons 'loadEagerly
                        (vconcat
                         (cl-loop for (path name) in jsfiles
-                              for (path . val) = (assoc path model)
-                              if val collect path))))))
+                                 for (path . val) = (assoc path model)
+                                 if val collect path))))))
          (buf (find-file-noselect pfile)))
     (unwind-protect
         (with-current-buffer buf
@@ -174,8 +185,8 @@
 
 (defun tern-prj-restart-server ()
   (cl-loop for i in (process-list)
-        if (string= (process-name i) "Tern")
-        do (quit-process i)))
+           if (string= (process-name i) "Tern")
+           do (quit-process i)))
 
 (provide 'tern-project-dialog)
 ;;; tern-project-dialog.el ends here
