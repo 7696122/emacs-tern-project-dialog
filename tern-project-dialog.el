@@ -16,19 +16,13 @@
 (require 'json)
 (require 'widget-mvc) ; https://github.com/kiwanami/emacs-widget-mvc
 
-(defcustom tern-home
-  (let ((tern-cmd (if (string= "node" (car tern-command)) (cadr tern-command) (car tern-command))))
-    (expand-file-name ".." (file-name-directory (file-truename (executable-find tern-cmd)))))
-  "installed tern-home."
-  :group 'tern-project-dialog)
-
 (defgroup tern-project-dialog nil
   "GUI frontend for TernJS project config."
   :group 'js)
 
 (defcustom tern-home
   (let* ((tern-path (if (string= "node" (car tern-command)) (cadr tern-command) (car tern-command))))
-    (expand-file-name ".." (file-name-directory (file-truename tern-path))))
+    (expand-file-name ".." (file-name-directory (file-truename (executable-find tern-cmd)))))
   "Tern NPM package location."
   :group 'tern-project-dialog
   :type 'directory)
