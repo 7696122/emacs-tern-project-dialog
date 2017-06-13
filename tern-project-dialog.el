@@ -21,7 +21,7 @@
   :group 'js)
 
 (defcustom tern-home
-  (let* ((tern-path (if (string= "node" (car tern-command)) (cadr tern-command) (car tern-command))))
+  (let ((tern-cmd (if (string= "node" (car tern-command)) (cadr tern-command) (car tern-command))))
     (expand-file-name ".." (file-name-directory (file-truename (executable-find tern-cmd)))))
   "Tern NPM package location."
   :group 'tern-project-dialog
