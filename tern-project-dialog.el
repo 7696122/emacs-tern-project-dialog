@@ -1,4 +1,4 @@
-;;; tern-project-dialog.el --- 
+;;; tern-project-dialog.el ---
 
 ;; Author: SAKURAI Masashi <m.sakurai at kiwanami.net>
 ;; Version: 0.0.2
@@ -7,7 +7,7 @@
 ;;; Commentary:
 
 ;; M-x tern-prj-dialog
-;; 
+;;
 
 ;;; Code:
 
@@ -22,12 +22,12 @@
   "installed tern-home."
   :group 'tern-project-dialog)
 
-(eval-when-compile 
+(eval-when-compile
   (defmacro tern-prj-collect-gen (target)
     `(cl-loop with plugins-dir = (expand-file-name ,target tern-home)
            for fn in (directory-files plugins-dir t "^[^\\.]")
-           collect (list (cl-gensym ,target) 
-                         (file-name-sans-extension (file-name-nondirectory fn)) 
+           collect (list (cl-gensym ,target)
+                         (file-name-sans-extension (file-name-nondirectory fn))
                          fn))))
 
 (defun tern-prj-collect-libs ()
@@ -47,7 +47,7 @@
 (defun tern-prj-collect-jsfiles (dir &optional base-dir)
   (unless base-dir
     (setq base-dir dir))
-  (cl-loop 
+  (cl-loop
    with ret = nil
    for fn in (directory-files dir nil "^[^\\.]")
    for path = (expand-file-name fn dir)
@@ -67,7 +67,7 @@
          (pfile (expand-file-name ".tern-project" pdir))
          project-data)
     (when (file-exists-p pfile)
-      (setq project-data 
+      (setq project-data
             (let ((json-array-type 'list))
               (ignore-errors
                 (json-read-file pfile)))))
@@ -97,7 +97,7 @@
                BR BR
                "  " (button :title "OK" :action on-submit :validation t)
                "  " (button :title "Cancel" :action on-cancel)))
-        (model 
+        (model
          (let ((data-plugins (cdr (assoc 'plugins project-data)))
                (data-libs (cdr (assoc 'libs project-data)))
                (data-jsfiles (cdr (assoc 'loadEagerly project-data))))
@@ -110,15 +110,15 @@
             (cl-loop for (path name) in jsfiles
                   collect (cons path (and (member path data-jsfiles) t))))))
         (validations nil)
-        (action-mapping 
+        (action-mapping
          '((on-submit . tern-prj-submit-action)
            (on-cancel . tern-prj-dialog-kill-buffer)))
-        (attributes (list 
+        (attributes (list
                      (cons 'project-dir pdir) (cons 'libs libs)
                      (cons 'jsfiles jsfiles) (cons 'plugins plugins))))
     (setq tern-prj-dialog-before-win-num (length (window-list)))
     (pop-to-buffer
-     (wmvc:build-buffer 
+     (wmvc:build-buffer
       :buffer (wmvc:get-new-buffer)
       :tmpl src :model model :actions action-mapping
       :validations validations :attributes attributes))))
@@ -133,7 +133,7 @@
          (coding-system-for-write 'utf-8)
          (json-object-type 'hash-table)
          after-save-hook before-save-hook
-         (json (json-encode 
+         (json (json-encode
                 (list
                  (cons 'plugins
                        (cl-loop with ps = (make-hash-table)
